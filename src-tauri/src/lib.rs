@@ -5,7 +5,8 @@
 
 // mod menu;
 
-use tauri::{webview::WebviewWindowBuilder, WebviewUrl};
+use tauri::{webview::{NewWindowResponse, WebviewWindowBuilder}, WebviewUrl};
+use tauri_plugin_opener::OpenerExt;
 
 pub fn run() {
     let port: u16 = 44548;
@@ -14,7 +15,7 @@ pub fn run() {
 
     // #[cfg(target_os = "macos")]
     // {
-    //      builder = builder.menu(menu::menu());
+    //     builder = builder.menu(menu::menu());
     // }
 
     builder
@@ -34,19 +35,24 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())             // Информация об ОС
         
         .setup(move |app| {
-            // Dev: используем локальный сервер Vite
+            // Dev: use devUrl from tauri.conf.json (http://localhost:8080) to support HMR
             #[cfg(debug_assertions)]
             let window_url = WebviewUrl::App(Default::default());
 
-            // Release: используем localhost плагин для доступа к ресурсам
+            // Release: tauri-plugin-localhost serves bundled frontend assets on this port
             #[cfg(not(debug_assertions))]
             let window_url = {
                 let url = format!("http://localhost:{}", port).parse().unwrap();
                 WebviewUrl::External(url)
             };
 
+            let app_handle = app.handle().clone();
             WebviewWindowBuilder::new(app, "main".to_string(), window_url)
                 .title("Cinny")
+                .on_new_window(move |url, _features| {
+                    let _ = app_handle.opener().open_url(url.as_str(), None::<&str>);
+                    NewWindowResponse::Deny
+                })
                 .build()?;
             Ok(())
         })
