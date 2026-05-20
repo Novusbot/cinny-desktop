@@ -14,18 +14,31 @@ pub fn run() {
 
     // #[cfg(target_os = "macos")]
     // {
-    //     builder = builder.menu(menu::menu());
+    //      builder = builder.menu(menu::menu());
     // }
 
     builder
+        // Базовые плагины для работы фронтенда
         .plugin(tauri_plugin_localhost::Builder::new(port).build())
         .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(tauri_plugin_opener::init())
+        
+        // Плагины для работы с системой (нужны для скачивания и UI)
+        .plugin(tauri_plugin_fs::init())             // Работа с файлами
+        .plugin(tauri_plugin_dialog::init())         // Окна сохранения/открытия
+        .plugin(tauri_plugin_notification::init())   // Пуши
+        .plugin(tauri_plugin_clipboard_manager::init()) // Буфер обмена
+        .plugin(tauri_plugin_shell::init())          // Запуск системных команд
+        .plugin(tauri_plugin_http::init())           // HTTP-запросы из Rust
+        .plugin(tauri_plugin_process::init())        // Управление процессами
+        .plugin(tauri_plugin_os::init())             // Информация об ОС
+        
         .setup(move |app| {
-            // Dev: use devUrl from tauri.conf.json (http://localhost:8080) to support HMR
+            // Dev: используем локальный сервер Vite
             #[cfg(debug_assertions)]
             let window_url = WebviewUrl::App(Default::default());
 
-            // Release: tauri-plugin-localhost serves bundled frontend assets on this port
+            // Release: используем localhost плагин для доступа к ресурсам
             #[cfg(not(debug_assertions))]
             let window_url = {
                 let url = format!("http://localhost:{}", port).parse().unwrap();
