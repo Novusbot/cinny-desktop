@@ -9,25 +9,22 @@ That is what lets CI check out the repository and build it.
 
 ## Getting a build
 
-This fork does not publish signed releases. Installers are produced by GitHub Actions and downloaded as
-workflow artifacts:
+Every push to `dev` builds a Windows installer automatically. Nothing to configure, nothing to click:
 
-* Open the **Actions** tab of this repository.
-* Run the **Build Tauri App** workflow (button: *Run workflow*). The `tag` input is optional and is only used
-  to keep artifact names distinct.
-* When the run finishes, download `cinny-windows-x86_64` (contains `Cinny_desktop-x86_64.msi` and
-  `Cinny_<version>_x64-setup.exe`), `cinny-macos-universal` (`Cinny_desktop-universal.dmg`) or
-  `cinny-linux-x86_64` (`.deb` / `.rpm` / `.AppImage`).
-* Artifacts are stored for a limited time — ask the maintainer to re-run the workflow if the download is gone.
+* Push your changes to `dev`.
+* Open the **Actions** tab, take the latest **Windows build** run.
+* Scroll to **Artifacts** at the bottom and download `cinny-windows`.
+* Unzip it — inside are `Cinny_desktop-x86_64.msi` and `Cinny_<version>_x64-setup.exe`. Send either one
+  to your colleagues.
+
+Artifacts are kept for 30 days. After that, re-run the workflow from the Actions tab (*Run workflow*)
+to build again.
 
 Installers are **not code-signed**, so Windows SmartScreen will warn on first run. Choose
-*More info → Run anyway*, or install the unsigned `.exe` from the NSIS bundle.
+*More info* → *Run anyway*.
 
 There is no auto-updater in the fork: `tauri-plugin-updater` and its release signing keys were removed.
-New versions are distributed by re-running the workflow and reinstalling.
-
-The **Smoke build** workflow builds all three platforms on every push to `dev` — use it to check that a change
-compiles before cutting a real build.
+To give colleagues a new version, push to `dev` and send them the new installer.
 
 ## Local development
 
