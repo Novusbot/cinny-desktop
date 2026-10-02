@@ -4,7 +4,8 @@ Cinny is a matrix client focusing primarily on simple, elegant and secure interf
 
 This repository is a fork of [cinnyapp/cinny-desktop](https://github.com/cinnyapp/cinny-desktop) with the
 Cinny Telegram Edition modifications. The web frontend is **not** a symlink here — it is a git submodule
-pointing at [Novusbot/cinny](https://github.com/Novusbot/cinny) and pinned to a fork tag (`vX.Y.Z-tg.N`).
+pointing at [Novusbot/cinny](https://github.com/Novusbot/cinny), pinned to an exact commit recorded in this
+repository — either the current `dev` commit (monthly cycle) or a fork tag `vX.Y.Z-tg.N` (releases).
 That is what lets CI check out the repository and build it.
 
 ## Getting a build
@@ -45,7 +46,30 @@ To build the app locally, run:
 To start local dev server, run:
 * `npm run tauri dev`
 
-### Bumping a release
+## Monthly cycle: shipping a Windows build to colleagues
+
+This is the routine path — no version bump, no tag. Use it every time the web frontend gets new work.
+
+1. Merge and push your web changes to `dev` in [Novusbot/cinny](https://github.com/Novusbot/cinny).
+2. Pin the submodule to that new commit:
+   ```bash
+   cd cinny && git fetch origin && git checkout origin/dev && cd ..
+   git add cinny && git commit -m "chore: pin cinny submodule to current dev"
+   ```
+3. Push the desktop repo: `git push origin dev`. If you touched `.github/workflows/*`, also
+   `git push origin dev:main` — `main` is the default branch, and GitHub only offers **Run workflow**
+   for workflows that exist there.
+4. Wait for the **Windows build** run (~11 minutes), then download the `cinny-windows` artifact from the
+   **Actions** tab.
+5. Send the installer to your colleagues.
+
+> **Step 2 is not optional.** The desktop app is built from exactly the submodule commit recorded in this
+> repository — not from the latest `dev` of the web repo. If you push web changes and forget to pin them,
+> colleagues get a Windows build with the old frontend and no error anywhere.
+
+## Bumping a release
+
+A release adds a version number and a tag on top of the monthly cycle above.
 
 The web frontend version defines the release version. Keep it in sync in three places:
 `cinny/package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json`.
@@ -56,7 +80,11 @@ cd cinny && git tag -a v4.12.8-tg.1 -m "..." && git push origin v4.12.8-tg.1
 cd .. && git -C cinny fetch --tags && git -C cinny checkout v4.12.8-tg.1
 git add cinny && git commit -m "chore: pin cinny submodule to v4.12.8-tg.1"
 ```
+Push the desktop repo (`git push origin dev`) and take the resulting `cinny-windows` artifact as described
+in the monthly cycle.
+
+Installers stay **not code-signed**, and there is **no auto-updater** in the fork: to give colleagues a new
+version, push to `dev` and send them the new installer.
 
 > `npm run tauri` copies this repository's `config.json` into `cinny/` before building. If you edit
 > `config.json` here, the submodule working tree becomes dirty — that is expected, do not commit it into `cinny/`.
-
