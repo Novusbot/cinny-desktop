@@ -48,7 +48,7 @@ pub fn run() {
 
             let app_handle = app.handle().clone();
             WebviewWindowBuilder::new(app, "main".to_string(), window_url)
-                .title("Cinny")
+                .title("CinnyT")
                 .disable_drag_drop_handler()
                 .on_new_window(move |url, _features| {
                     let _ = app_handle.opener().open_url(url.as_str(), None::<&str>);
